@@ -64,6 +64,35 @@ class MethodUpdateExtractor
 					count += 1
 				end
 			end
+			if(filesInformation == [])
+				return newExtraction(buildLog)
+			end			
+			return "methodParameterListSize", filesInformation, changedClasses.size
+		rescue
+			return "methodParameterListSize", [], 0
+		end
+	end
+
+	def newExtraction(buildLog)
+		filesInformation = []
+		numberOccurrences = 0
+		begin
+			if (buildLog[/^[\/\w\-]+.java:\d+: error: method \w+ in enum [\w\_]+ cannot be applied to given types;$/])
+
+				numberOccurrences = buildLog.scan(/^[\/\w\-]+.java:\d+: error: method \w+ in enum [\w\_]+ cannot be applied to given types;$/).size
+				changedClasses = buildLog.to_enum(:scan, /^[\/\w\-]+.java:\d+: error: method \w+ in enum [\w\_]+ cannot be applied to given types;$/).map { Regexp.last_match }
+				callClassFiles = buildLog.to_enum(:scan, /\[ERROR\] method [ \t\r\n\f]*[a-zA-Z0-9\/\-\.\:\[\]\,]*[ \t\r\n\f]*/).map { Regexp.last_match }
+				count = 0
+				while (count < changedClasses.size)
+					changedClass = changedClasses[count].to_s.match(/^[\/\w\-]+.java:\d+: error: method \w+ in enum [\w\_]+ cannot be applied to given types;$/)[0].split("/").last.gsub('.java:','')
+					methodName = changedClass.match(/error: method \w+/)[0].split(" ").last
+					line = changedClass[/\d+/]					
+					callClassFile = changedClass[/\w+ cannot be applied to given types;$/].split(" ")[0]
+					changedClass = changedClass.split(/\d/)[0]
+					filesInformation.push(["methodParameterListSize", changedClass, methodName, callClassFile, "method", line])
+					count += 1
+				end
+			end		
 			return "methodParameterListSize", filesInformation, changedClasses.size
 		rescue
 			return "methodParameterListSize", [], 0
@@ -71,3 +100,21 @@ class MethodUpdateExtractor
 	end
 	
 end
+
+str = ""
+File.open("test.txt").each do |line|
+	str = str + line
+end
+
+extractor = MethodUpdateExtractor.new()
+
+puts "=============================="
+puts "####about to extract info#####"
+puts "=============================="
+info = extractor.extractionFilesInfo(str)
+puts "=============================="
+puts "########info extracted########"
+puts "=============================="
+
+puts "Files information: "
+puts info
