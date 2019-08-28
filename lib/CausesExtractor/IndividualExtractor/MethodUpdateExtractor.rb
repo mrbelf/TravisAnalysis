@@ -100,21 +100,3 @@ class MethodUpdateExtractor
 	end
 	
 end
-
-str = ""
-File.open("test.txt").each do |line|
-	str = str + line
-end
-
-extractor = MethodUpdateExtractor.new()
-
-puts "=============================="
-puts "####about to extract info#####"
-puts "=============================="
-info = extractor.extractionFilesInfo(str)
-puts "=============================="
-puts "########info extracted########"
-puts "=============================="
-
-puts "Files information: "
-puts info
