@@ -5,10 +5,18 @@ class UnimplementedMethodExtractor
 	end
 
 	def extractionFilesInfo(buildLog)
+		
 
 		begin
-			return getInfoDefaultCase(buildLog)
+			returnInfo = getInfoDefaultCase(buildLog)
+			puts returnInfo[1]
+			puts (returnInfo[1] == [])
+			
+			
 		rescue
+			if(!(buildLog =~ /^[\--z]+:\d+: error: [ -z]+ is not abstract and does not override abstract method [ -z]+ in \w+$/).nil?)
+				return newExtractionFilesInfo(buildLog)
+			end
 			return "unimplementedMethod", [], 0
 		end
 	end
@@ -77,4 +85,22 @@ class UnimplementedMethodExtractor
 		return "unimplementedMethodSuperType", filesInformation, filesInformation.size
 	end
 	
+
+	def newExtractionFilesInfo(buildLog)
+		interfaceFiles = buildLog.to_enum(:scan, /abstract method \w+[\(\)\w]* in \w+/).map { Regexp.last_match }
+		methodInterfaces = buildLog.to_enum(:scan, /abstract method \w+[\(\)\w]*/).map { Regexp.last_match }
+		classFiles = buildLog.to_enum(:scan, /[\/\w]+\.java/).map { Regexp.last_match }
+		filesInformation = []
+		
+		count = 0
+		while(count < interfaceFiles.size)
+			classFile = classFiles[count].to_s.split("/").last.gsub(".java","")
+			methodInterface = methodInterfaces[count].to_s.split(" ").last
+			interfaceFile = interfaceFiles[count].to_s.split(" ").last
+			filesInformation.push(["unimplementedMethod", classFile, interfaceFile, methodInterface])
+			count += 1
+		end
+
+		return "unimplementedMethod", filesInformation, interfaceFiles.size
+	end
 end
