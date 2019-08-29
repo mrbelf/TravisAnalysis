@@ -19,11 +19,14 @@ class UnavailableSymbolExtractor
 				elsif (buildLog[/error: cannot find symbol/])
 					return getInfoThirdCase(completeBuildLog)
 				else
-					return getInfoDefaultCase(buildLog, completeBuildLog)
+					return getInfoDefaultCase(buildLog)
 				end
 			end
 		rescue
 			return categoryMissingSymbol, [], 0
+		end
+		if(!(buildLog =~ /^[\--z]+:\d+: error: cannot find symbol$/).nil? )
+			return newExtractionFilesInfo(buildLog)
 		end
 	end
 
@@ -120,6 +123,26 @@ class UnavailableSymbolExtractor
 		else
 			return "unavailableSymbolFile"
 		end
+	end
+
+	def newExtractionFilesInfo(buildLog)
+		numberOccurrences = buildLog.scan(/^[\--z]+.java:\d+: error: cannot find symbol[\s\S]*location: [ \w]+/).size
+		occurrences = buildLog
+		count = 0
+		filesInformation = []
+		info = buildLog.to_enum(:scan, /^[\--z]+.java:\d+: error: cannot find symbol[\s\S]*location: [ \w]+/).map { Regexp.last_match }
+		while(count < numberOccurrences)
+			categoryMissingSymbol = info[count].to_s[/symbol:   \w+/].to_s.split(" ").last
+			callClassFile = info[count].to_s[/location: [ \w]+/].to_s.split(" ").last
+			methodName = info[count].to_s[/symbol:   method [\w\,\(\)]+/].to_s.split(" ").last
+			classFile = info[count].to_s.split(".java:")[0].split("/").last
+			line = info[count].to_s.split(":")[1]
+			filesInformation.push([categoryMissingSymbol, classFile, methodName, callClassFile, line])
+			count += 1
+		end
+		
+		
+		return categoryMissingSymbol.to_s, filesInformation, filesInformation.size
 	end
 
 end
