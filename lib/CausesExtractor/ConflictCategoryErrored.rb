@@ -320,12 +320,15 @@ class ConflictCategoryErrored
 			causesFilesConflicts.insertNewCauseOne(extraction[0], extraction[1])
 		end
 
-		if (body[/\[#{stringErro}\][\s\S]*#{stringNoOverride}[\s\S]*\[#{stringErro}\]/])
+		if (body[/\[#{stringErro}\][\s\S]*#{stringNoOverride}[\s\S]*\[#{stringErro}\]/] || body[/is not abstract and does not override abstract method \w+[\w\(\)]+ in \w+/])
 			otherCase = false
 			#localUnimplementedMethod = body.scan(/\[#{stringErro}\][\s\S]*#{stringNoOverride}[\s\S]*\[#{stringErro}\]/).size
 			if (body.scan(/method does not override or implement a method from a supertype/))
 				localUnimplementedMethod = body.scan(/method does not override or implement a method from a supertype/).size
 				extraction = getUnimplementedMethodExtractor().extractionFilesInfoSecond(body[/BUILD FAILURE[\s\S]*/])
+				if (extraction[2] == 0)
+					extraction = getUnimplementedMethodExtractor().extractionFilesInfo(body)
+				end
 				getCausesErroredBuild.setUnimplementedMethod(extraction[2])
 				causesFilesConflicts.insertNewCauseOne(extraction[0], extraction[1])
 			end
