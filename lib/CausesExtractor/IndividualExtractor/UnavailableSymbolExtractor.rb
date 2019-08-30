@@ -19,7 +19,7 @@ class UnavailableSymbolExtractor
 				elsif (buildLog[/error: cannot find symbol/])
 					return getInfoThirdCase(completeBuildLog)
 				else
-					return getInfoDefaultCase(buildLog)
+					return getInfoDefaultCase(buildLog,  completeBuildLog)
 				end
 			end
 		rescue
