@@ -18,6 +18,7 @@ class ConflictCategoryErrored
 		@unavailableSymbolExtractor = UnavailableSymbolExtractor.new()
 		@alternativeStatement = AlternativeStatement.new()
 		@DependencyExtractor = DependencyExtractor.new()
+		@incompatibleTypes = IncompatibleTypes.new()
 	end
 
 	def getCausesErroredBuild()
@@ -54,6 +55,10 @@ class ConflictCategoryErrored
 
 	def getAlternativeStatement()
 		@alternativeStatement
+	end
+
+	def getIncompatibleTypesExtractor()
+		@incompatibleTypes
 	end
 
 	def getTotal()
@@ -297,18 +302,12 @@ class ConflictCategoryErrored
 		stringTerminated = "The build has been terminated"
 		stringStopped = "Your build has been stopped"
 
-		if (body[/\[ERROR\] \(actual and formal argument lists differ in length\)/] || body[/\[ERROR\][ \t\r\n\f]*[a-zA-Z0-9\/\-\.\:\[\]\,\(\) ]* (no suitable method found for|cannot be applied to)+ [a-zA-Z0-9\/\-\.\:\[\]\,]*/] || body[/\[ERROR\] [a-zA-Z0-9\/\-\.\:\[\]\, ]* has private access in [a-zA-Z0-9\/\-\.\:\[\]\,]*/] || body[/\[#{stringErro}\][\s\S]*#{stringNoApplied}[\s\S]*(\[#{stringErro}\])?\;/] || body[/\[#{stringErro}\][\s\S]*#{stringUpdate}[\s\S]*\[#{stringInfo}\](.*)?[0-9]/] || body[/\[#{stringErro}\]#{stringCompError}[\s\S]*[.java][\s\S]*#{stringNoConvert}/] || body[/#{stringWrongReturn}/] || body[/#{stringIncompatibleType}/])
+		if (body[/\[ERROR\] \(actual and formal argument lists differ in length\)/] || body[/\[ERROR\][ \t\r\n\f]*[a-zA-Z0-9\/\-\.\:\[\]\,\(\) ]* (no suitable method found for|cannot be applied to)+ [a-zA-Z0-9\/\-\.\:\[\]\,]*/] || body[/\[ERROR\] [a-zA-Z0-9\/\-\.\:\[\]\, ]* has private access in [a-zA-Z0-9\/\-\.\:\[\]\,]*/] || body[/\[#{stringErro}\][\s\S]*#{stringNoApplied}[\s\S]*(\[#{stringErro}\])?\;/] || body[/\[#{stringErro}\][\s\S]*#{stringUpdate}[\s\S]*\[#{stringInfo}\](.*)?[0-9]/] || body[/\[#{stringErro}\]#{stringCompError}[\s\S]*[.java][\s\S]*#{stringNoConvert}/] || body[/#{stringWrongReturn}/])
 			otherCase = false
 			localMethodUpdate = body.scan(/\[ERROR\] [a-zA-Z0-9\/\-\.\:\[\]\, ]* has private access in [a-zA-Z0-9\/\-\.\:\[\]\,]*|\[#{stringErro}\][\s\S]*#{stringNoApplied}[\s\S]*(\[#{stringErro}\])?\;|\[#{stringErro}\][\s\S]*#{stringUpdate}[\s\S]*\[#{stringInfo}\](.*)?[0-9]|\[#{stringErro}\]#{stringCompError}[\s\S]*[.java][\s\S]*#{stringNoConvert}|#{stringWrongReturn}|#{stringIncompatibleType}|\[#{stringErro}\][\s\S]*[#{stringConstructorFound}]?[\s\S]*#{stringDifferArgument}/).size
 			extraction = getMethodUpdateExtractor().extractionFilesInfo(body)
 			getCausesErroredBuild.setMethodParameterListSize(extraction[2])
 			causesFilesConflicts.insertNewCauseOne(extraction[0], extraction[1])
-		end
-
-		if (body[/\[ERROR\] [a-zA-Z\/\-0-9\.\:\[\]\,]* error: incompatible types: [a-zA-Z0-9]* cannot be converted to [a-zA-Z0-9]*/])
-			otherCase = false
-			localUnavailableSymbol = body.scan(/\[ERROR\] [a-zA-Z\/\-0-9\.\:\[\]\,]* error: incompatible types: [a-zA-Z0-9]* cannot be converted to [a-zA-Z0-9]*/).size
-			causesFilesConflicts.insertNewCauseOne("incompatibleTypes", ["incompatibleTypes"])
 		end
 
 		#if (body[/\[#{stringErro}\][\s\S]*#{stringDefined}[\s\S]*\[#{stringInfo}\](.*)?[0-9]/])
@@ -358,6 +357,16 @@ class ConflictCategoryErrored
 				else
 					getCausesErroredBuild.setUnavailableFile(extraction[2])
 				end
+				causesFilesConflicts.insertNewCauseOne(extraction[0], extraction[1])
+			rescue
+				print "LOG WITHOUT INFORMATION"
+			end
+		end
+		if (body[/^[\--z]+:\d+: error: incompatible types: \w+ cannot be converted to \w+$/])
+			otherCase = false
+			localUnavailableSymbol = body.scan(/^[\--z]+:\d+: error: incompatible types: \w+ cannot be converted to \w+$/).size
+			extraction = getIncompatibleTypesExtractor().extractionFilesInfo(body)
+			begin
 				causesFilesConflicts.insertNewCauseOne(extraction[0], extraction[1])
 			rescue
 				print "LOG WITHOUT INFORMATION"
