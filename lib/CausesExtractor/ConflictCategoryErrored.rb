@@ -311,7 +311,7 @@ class ConflictCategoryErrored
 		end
 
 		#if (body[/\[#{stringErro}\][\s\S]*#{stringDefined}[\s\S]*\[#{stringInfo}\](.*)?[0-9]/])
-		if (body[/\[#{stringErro}\][\s\S]*#{stringDefined}[\s\S]*(.*)?[0-9]/])
+		if (body[/\[#{stringErro}\][\s\S]*#{stringDefined}[\s\S]*(.*)?[0-9]/] || body[/^[\--z]+:\d+: error: method \w+\([\w,]*\) is already defined in [ -z]*$/])
 			otherCase = false
 			#localDuplicateStatement = body.scan(/\[#{stringErro}\][\s\S]*#{stringDefined}[\s\S]*\[#{stringInfo}\](.*)?[0-9]/).size
 			localDuplicateStatement = body.scan(/is already defined/).size
@@ -437,4 +437,3 @@ class ConflictCategoryErrored
 		return false, nil
 	end
 end
-
