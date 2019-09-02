@@ -1,5 +1,5 @@
 require 'require_all'
-require_all './BuildConflictExtractor'
+#require_all './BuildConflictExtractor'
 require_rel 'ConflictCategories'
 require_rel 'CausesFilesConflicting'
 require_rel 'CausesErroredBuild'
@@ -365,7 +365,7 @@ class ConflictCategoryErrored
 				print "LOG WITHOUT INFORMATION"
 			end
 		end
-		if (body[/^[\--z]+:\d+: error: incompatible types: \w+ cannot be converted to \w+$/])
+		if (body[/^[\--z ]+:[\[]?[\d\,]+[\]]?[\:]? error: incompatible types: \w+ cannot be converted to \w+$/])
 			otherCase = false
 			localUnavailableSymbol = body.scan(/^[\--z]+:\d+: error: incompatible types: \w+ cannot be converted to \w+$/).size
 			extraction = getIncompatibleTypesExtractor().extractionFilesInfo(body)
@@ -440,3 +440,29 @@ class ConflictCategoryErrored
 		return false, nil
 	end
 end
+class WeirdList
+	def initialize()
+		@wl = []
+	end
+
+	def get_wl()
+		return @wl
+	end
+
+	def insertNewCauseOne(stuff1,stuff2)
+		@wl.push([stuff1,stuff2])
+	end
+
+end
+
+str = ""
+File.open("test.txt").each do |line|
+	str = str + line
+end
+
+list = WeirdList.new()
+
+extractor = ConflictCategoryErrored.new("","")
+extractor.getCauseByBuild(str, "", list, "", "","","","","","")
+
+puts list.get_wl
