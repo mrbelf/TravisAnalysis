@@ -440,29 +440,3 @@ class ConflictCategoryErrored
 		return false, nil
 	end
 end
-class WeirdList
-	def initialize()
-		@wl = []
-	end
-
-	def get_wl()
-		return @wl
-	end
-
-	def insertNewCauseOne(stuff1,stuff2)
-		@wl.push([stuff1,stuff2])
-	end
-
-end
-
-str = ""
-File.open("test.txt").each do |line|
-	str = str + line
-end
-
-list = WeirdList.new()
-
-extractor = ConflictCategoryErrored.new("","")
-extractor.getCauseByBuild(str, "", list, "", "","","","","","")
-
-puts list.get_wl
