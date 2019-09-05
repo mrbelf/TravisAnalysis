@@ -1,5 +1,5 @@
 require 'require_all'
-#require_all './BuildConflictExtractor'
+require_all './BuildConflictExtractor'
 require_rel 'ConflictCategories'
 require_rel 'CausesFilesConflicting'
 require_rel 'CausesErroredBuild'
@@ -367,7 +367,7 @@ class ConflictCategoryErrored
 		end
 		if (body[/^[\--z ]+:[\[]?[\d\,]+[\]]?[\:]? error: incompatible types: \w+ cannot be converted to \w+$/])
 			otherCase = false
-			localUnavailableSymbol = body.scan(/^[\--z]+:\d+: error: incompatible types: \w+ cannot be converted to \w+$/).size
+			localUnavailableSymbol = body.scan(/^[\--z ]+:[\[]?[\d\,]+[\]]?[\:]? error: incompatible types: \w+ cannot be converted to \w+$/).size
 			extraction = getIncompatibleTypesExtractor().extractionFilesInfo(body)
 			begin
 				causesFilesConflicts.insertNewCauseOne(extraction[0], extraction[1])
@@ -438,5 +438,22 @@ class ConflictCategoryErrored
 			return false, nil
 		end
 		return false, nil
+	end
+end
+
+def recursivePrint(stuffToPrint)
+	if(stuffToPrint.size == 1 || stuffToPrint.is_a?(String))
+		print "#{stuffToPrint}"
+	else
+		print "["
+		b = false
+		stuffToPrint.each do |stuff|
+			if(b)
+				print ","
+			end
+			b = true
+			recursivePrint(stuff)
+		end
+		print "]"
 	end
 end
